@@ -30,6 +30,8 @@ koin-core = { module = "io.insert-koin:koin-core"}
 koin-android = { module = "io.insert-koin:koin-android"}
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose"}
 
+androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended-android" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

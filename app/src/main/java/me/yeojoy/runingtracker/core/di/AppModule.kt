@@ -5,6 +5,9 @@ import me.yeojoy.runingtracker.domain.repository.RunRepository
 import me.yeojoy.runingtracker.domain.use_case.DeleteRunUseCase
 import me.yeojoy.runingtracker.domain.use_case.GetRunsUseCase
 import me.yeojoy.runingtracker.domain.use_case.SaveRunUseCase
+import me.yeojoy.runingtracker.presentation.MainViewModel
+import me.yeojoy.runingtracker.presentation.service.TrackingManager
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val appModule = module {
@@ -14,4 +17,15 @@ val appModule = module {
     single { DeleteRunUseCase(get()) }
     single { SaveRunUseCase(get()) }
     single { GetRunsUseCase(get()) }
+
+    single { TrackingManager() }
+
+    viewModel {
+        MainViewModel(
+            saveRunUseCase = get(),
+            deleteRunUseCase = get(),
+            getRunsUseCase = get(),
+            trackingManager = get()
+        )
+    }
 }

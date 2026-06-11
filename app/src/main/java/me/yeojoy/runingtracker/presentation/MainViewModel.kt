@@ -21,12 +21,14 @@ import me.yeojoy.runingtracker.domain.model.SortType
 import me.yeojoy.runingtracker.domain.use_case.DeleteRunUseCase
 import me.yeojoy.runingtracker.domain.use_case.GetRunsUseCase
 import me.yeojoy.runingtracker.domain.use_case.SaveRunUseCase
+import me.yeojoy.runingtracker.presentation.service.TrackingManager
 
 
 class MainViewModel(
     private val saveRunUseCase: SaveRunUseCase,
     private val deleteRunUseCase: DeleteRunUseCase,
-    private val getRunsUseCase: GetRunsUseCase
+    private val getRunsUseCase: GetRunsUseCase,
+    private val trackingManager: TrackingManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MainState())
@@ -38,6 +40,7 @@ class MainViewModel(
 
     init {
         observeRunsSortType()
+        observeTrackingState()
     }
 
     fun onAction(action: MainAction) {
@@ -64,6 +67,7 @@ class MainViewModel(
                 // Stop Tracking
                 _event.emit(MainEvent.StopTracking)
             }
+            trackingManager.updateTrackingState(isTracking = isTracking)
         }
     }
 
@@ -125,5 +129,20 @@ class MainViewModel(
                 _state.update { it.copy(runs = runs) }
             }
             .launchIn(viewModelScope)
+    }
+
+    private fun observeTrackingState() {
+        trackingManager.state.onEach { trackingState ->
+            _state.update {
+                it.copy(
+                    trackingState = trackingState,
+                    displayPathPoints = if (trackingState.isTracking) {
+                        trackingState.pathPoints
+                    } else {
+                        it.displayPathPoints
+                    }
+                )
+            }
+        }.launchIn(viewModelScope)
     }
 }

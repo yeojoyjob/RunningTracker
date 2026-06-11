@@ -1,6 +1,5 @@
 package me.yeojoy.runingtracker.presentation.component
 
-import android.graphics.drawable.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -33,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import me.yeojoy.runingtracker.core.util.RunFormatter
 import me.yeojoy.runingtracker.domain.model.Run
+import me.yeojoy.runingtracker.presentation.MainAction
 import me.yeojoy.runingtracker.ui.theme.AppTheme
 import me.yeojoy.runingtracker.ui.theme.RunningTrackerTheme
 
@@ -40,8 +40,12 @@ import me.yeojoy.runingtracker.ui.theme.RunningTrackerTheme
 fun RunItem(
     modifier: Modifier = Modifier,
     run: Run,
-    onSelect: () -> Unit = {},
-    onDelete: () -> Unit = {},
+    onSelect: () -> Unit = {
+        MainAction.SelectRun(run)
+    },
+    onDelete: () -> Unit = {
+        MainAction.DeleteRun(run)
+    },
 ) {
     Card(
         modifier = modifier

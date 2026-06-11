@@ -17,5 +17,6 @@ data class MainState(
     val selectedRun: Run? = null,
     val displayPathPoints: List<LocationPoint> = listOf(),
 
-    val isGpsMockingEnabled: Boolean = false
+    // For test
+    val isGpsMockingEnabled: Boolean = true
 )

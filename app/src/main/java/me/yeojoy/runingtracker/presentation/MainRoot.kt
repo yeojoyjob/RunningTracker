@@ -1,5 +1,11 @@
 package me.yeojoy.runingtracker.presentation
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -14,11 +20,16 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import androidx.core.content.PackageManagerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import me.yeojoy.runingtracker.presentation.component.LogMapRenderer
 import me.yeojoy.runingtracker.presentation.component.MapRenderer
+import me.yeojoy.runingtracker.presentation.service.TrackingService
 import me.yeojoy.runingtracker.ui.theme.AppTheme
 import org.koin.androidx.compose.koinViewModel
 
@@ -28,6 +39,60 @@ fun MainRoot(
     mapRenderer: MapRenderer = LogMapRenderer(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
+
+    val permissions = mutableListOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
+    ).apply {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { results ->
+        val allGranted = results.values.all { it }
+        if (allGranted) {
+            // Granted
+
+        } else {
+            // Denied, add an AlertDialog to let users know why they are needed
+        }
+    }
+
+    // Collect event, it's good to handle events
+    LaunchedEffect(true /* Just run this once with `true` */) {
+        viewModel.event.collect { event ->
+            when (event) {
+                is MainEvent.PermissionRequired -> { TODO() }
+                MainEvent.RunSaved -> { TODO() }
+                is MainEvent.ShowSnackBar -> { TODO() }
+                MainEvent.StartTracking -> {
+                    val hasAllPermissions = permissions.all {
+                        ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+                    }
+                    if (hasAllPermissions) {
+                        val intent = Intent(context, TrackingService::class.java).apply {
+                            action = TrackingService.ACTION_START
+                        }
+                        ContextCompat.startForegroundService(context, intent)
+                    } else {
+                        permissionLauncher.launch(permissions.toTypedArray())
+                    }
+                }
+                MainEvent.StopTracking -> {
+                    val intent = Intent(context, TrackingService::class.java).apply {
+                        action = TrackingService.ACTION_STOP
+                    }
+                    context.startService(intent)
+                }
+            }
+        }
+    }
+
     Scaffold(
         floatingActionButton = {
             AnimatedVisibility(

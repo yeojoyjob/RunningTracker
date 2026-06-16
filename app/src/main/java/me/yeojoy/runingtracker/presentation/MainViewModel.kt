@@ -67,7 +67,7 @@ class MainViewModel(
                 // Stop Tracking
                 _event.emit(MainEvent.StopTracking)
             }
-            trackingManager.updateTrackingState(isTracking = isTracking)
+
         }
     }
 

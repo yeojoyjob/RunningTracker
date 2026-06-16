@@ -67,7 +67,6 @@ class MainViewModel(
                 // Stop Tracking
                 _event.emit(MainEvent.StopTracking)
             }
-
         }
     }
 

@@ -11,6 +11,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import me.yeojoy.runingtracker.MainActivity
 import me.yeojoy.runingtracker.R
+import org.koin.android.ext.android.inject
 
 class TrackingService : Service() {
 
@@ -26,6 +27,8 @@ class TrackingService : Service() {
 
         const val NOTIFICATION_ID = 3
     }
+
+    private val trackingManager: TrackingManager by inject() // inject by koin into field
 
     override fun onBind(intent: Intent): IBinder? = null
 
@@ -76,6 +79,7 @@ class TrackingService : Service() {
         }.build()
 
         startForeground(NOTIFICATION_ID, notification)
+        trackingManager.updateTrackingState(isTracking = true)
     }
 
     private fun createNotificationChannel(notificationManager: NotificationManager?) {
@@ -103,6 +107,8 @@ class TrackingService : Service() {
     }
 
     private fun stopTrackingForegroundService() {
+        trackingManager.updateTrackingState(isTracking = false)
+
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }

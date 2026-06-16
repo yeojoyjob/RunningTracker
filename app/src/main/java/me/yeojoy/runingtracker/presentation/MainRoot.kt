@@ -19,14 +19,17 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
-import androidx.core.content.PackageManagerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
 import me.yeojoy.runingtracker.presentation.component.LogMapRenderer
 import me.yeojoy.runingtracker.presentation.component.MapRenderer
 import me.yeojoy.runingtracker.presentation.service.TrackingService
@@ -41,6 +44,7 @@ fun MainRoot(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val permissions = mutableListOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -67,9 +71,18 @@ fun MainRoot(
     LaunchedEffect(true /* Just run this once with `true` */) {
         viewModel.event.collect { event ->
             when (event) {
-                is MainEvent.PermissionRequired -> { TODO() }
-                MainEvent.RunSaved -> { TODO() }
-                is MainEvent.ShowSnackBar -> { TODO() }
+                is MainEvent.PermissionRequired -> {
+
+                }
+                MainEvent.RunSaved -> {
+                    // Show a snackbar
+                    launch {
+                        snackbarHostState.showSnackbar("Saved...")
+                    }
+                }
+                is MainEvent.ShowSnackBar -> {
+
+                }
                 MainEvent.StartTracking -> {
                     val hasAllPermissions = permissions.all {
                         ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
@@ -94,6 +107,7 @@ fun MainRoot(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
             AnimatedVisibility(
                 visible = !state.trackingState.isTracking,

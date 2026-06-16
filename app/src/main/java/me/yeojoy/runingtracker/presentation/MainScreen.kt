@@ -1,5 +1,8 @@
 package me.yeojoy.runingtracker.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +33,8 @@ import me.yeojoy.runingtracker.presentation.component.LogMapRenderer
 import me.yeojoy.runingtracker.presentation.component.MapRenderer
 import me.yeojoy.runingtracker.presentation.component.RunItem
 import me.yeojoy.runingtracker.presentation.component.SortTypeSelector
+import me.yeojoy.runingtracker.presentation.component.TrackingOverlay
+import me.yeojoy.runingtracker.presentation.service.TrackingState
 import me.yeojoy.runingtracker.ui.theme.AppTheme
 
 @Composable
@@ -108,6 +113,21 @@ fun MainScreen(
                 }
             }
         }
+
+        // TODO depending on a condition
+        AnimatedVisibility(
+            visible = state.trackingState.isTracking,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            TrackingOverlay(
+                trackingState = state.trackingState,
+                onFinish = {
+                    onAction(MainAction.FinishRun)
+                },
+            )
+        }
     }
 }
 
@@ -118,6 +138,68 @@ private fun MainScreenPreview() {
     var _state by remember {
         mutableStateOf(
             MainState(
+                isGpsMockingEnabled = true,
+                gpsStatus = GpsStatus.Acquired,
+                runs = listOf(
+                    Run(
+                        id = 1,
+                        distanceInMeters = 5240.0,
+                        timeInMillis = 1830000L,
+                        timestamp = System.currentTimeMillis(),
+                        avgSpeedInKMH = 10.2f
+                    ),
+                    Run(
+                        id = 2,
+                        distanceInMeters = 4240.0,
+                        timeInMillis = 1330000L,
+                        timestamp = System.currentTimeMillis(),
+                        avgSpeedInKMH = 12.2f
+                    ),
+                    Run(
+                        id = 3,
+                        distanceInMeters = 3240.0,
+                        timeInMillis = 830000L,
+                        timestamp = System.currentTimeMillis(),
+                        avgSpeedInKMH = 9.2f
+                    ),
+                )
+            )
+        )
+    }
+
+    MainScreen(
+        state = _state,
+        onAction = {
+            if (it is MainAction.ToggleGpsStatus) {
+                _state = _state.copy(
+                    gpsStatus = when (_state.gpsStatus) {
+                        GpsStatus.Acquired -> GpsStatus.Enabled
+                        GpsStatus.Enabled -> GpsStatus.Disabled
+                        GpsStatus.Disabled -> GpsStatus.Lost
+                        GpsStatus.Lost -> GpsStatus.Acquired
+                    }
+                )
+            } else if (it is MainAction.ChangeSortType) {
+                _state = _state.copy(
+                    sortType = it.sortType
+                )
+            }
+        },
+        mapRenderer = LogMapRenderer()
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun MainScreenTrackingPreview() {
+    var _state by remember {
+        mutableStateOf(
+            MainState(
+                trackingState = TrackingState(
+                    isTracking = true,
+                    distanceInMeters = 10000.3,
+                    timeInMillis = 13460000
+                ),
                 isGpsMockingEnabled = true,
                 gpsStatus = GpsStatus.Acquired,
                 runs = listOf(

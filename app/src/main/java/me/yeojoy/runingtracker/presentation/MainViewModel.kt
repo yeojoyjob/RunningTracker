@@ -50,7 +50,7 @@ class MainViewModel(
             is MainAction.DeleteRun -> deleteRun(action.run)
             MainAction.FinishRun -> finishRun()
             is MainAction.SelectRun -> selectRun(action.run)
-            MainAction.ToggleGpsStatus -> TODO()
+            MainAction.ToggleGpsStatus -> {}
         }
     }
 

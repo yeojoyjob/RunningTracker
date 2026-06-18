@@ -1,4 +1,4 @@
-package me.yeojoy.runningtracker.domain.location
+package me.yeojoy.runningtracker.domain.model
 
 data class LocationPoint(
     val latitude: Double,

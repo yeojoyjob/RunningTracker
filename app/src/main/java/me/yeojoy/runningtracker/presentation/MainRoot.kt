@@ -129,7 +129,8 @@ fun MainRoot(
                 }
             }
         },
-        contentColor = AppTheme.colors.background
+        // Exterior of the app color
+        containerColor = AppTheme.colors.background
     ) { padding ->
         Box(
             modifier = Modifier.padding(padding)

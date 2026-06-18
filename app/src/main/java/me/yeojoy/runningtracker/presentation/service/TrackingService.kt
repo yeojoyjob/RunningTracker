@@ -3,6 +3,7 @@ package me.yeojoy.runningtracker.presentation.service
 import android.content.Intent
 import android.os.IBinder
 import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
 import org.koin.android.ext.android.inject
 
 class TrackingService : LifecycleService() {
@@ -44,11 +45,11 @@ class TrackingService : LifecycleService() {
         val notification = notificationTrackingHelper.buildTrackingNotification()
 
         startForeground(NOTIFICATION_ID, notification)
-        trackingManager.updateTrackingState(isTracking = true)
+        trackingManager.startTracking(lifecycleScope)
     }
 
     private fun stopTrackingForegroundService() {
-        trackingManager.updateTrackingState(isTracking = false)
+        trackingManager.stopTracking()
 
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()

@@ -1,6 +1,6 @@
 package me.yeojoy.runningtracker.presentation.service
 
-import me.yeojoy.runningtracker.domain.location.LocationPoint
+import me.yeojoy.runningtracker.domain.model.LocationPoint
 
 data class TrackingState(
     val isTracking: Boolean = false,

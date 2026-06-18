@@ -1,6 +1,6 @@
 package me.yeojoy.runningtracker.presentation
 
-import me.yeojoy.runningtracker.domain.location.LocationPoint
+import me.yeojoy.runningtracker.domain.model.LocationPoint
 import me.yeojoy.runningtracker.domain.model.GpsStatus
 import me.yeojoy.runningtracker.domain.model.Run
 import me.yeojoy.runningtracker.domain.model.SortType

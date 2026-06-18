@@ -1,7 +1,5 @@
 package me.yeojoy.runningtracker.domain.model
 
-import me.yeojoy.runningtracker.domain.location.LocationPoint
-
 data class Run(
     val id: Int? = null,
     val distanceInMeters: Double = 0.0,

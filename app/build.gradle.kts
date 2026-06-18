@@ -1,14 +1,24 @@
+import java.util.Properties
+
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
 
 android {
-    namespace = "me.yeojoy.runingtracker"
+    namespace = "me.yeojoy.runningtracker"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "me.yeojoy.runingtracker"
+        applicationId = "me.yeojoy.runningtracker"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
@@ -26,12 +36,44 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     buildFeatures {
         compose = true
+    }
+
+    flavorDimensions += "environment"
+    flavorDimensions += "mapSDK"
+
+    productFlavors {
+        create("develop") {
+            dimension = "environment"
+            applicationIdSuffix = ".develop"
+            versionNameSuffix = "-develop"
+        }
+        create("staging") {
+            dimension = "environment"
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-staging"
+        }
+        create("production") {
+            dimension = "environment"
+        }
+        create("google") {
+            dimension = "mapSDK"
+        }
+        create("naver") {
+            dimension = "mapSDK"
+        }
+        create("noMap") {
+            dimension = "mapSDK"
+
+        }
+
     }
 }
 

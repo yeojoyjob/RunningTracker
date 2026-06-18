@@ -1,0 +1,147 @@
+package me.yeojoy.runningtracker.presentation
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import me.yeojoy.runningtracker.domain.model.Run
+import me.yeojoy.runningtracker.domain.model.SortType
+import me.yeojoy.runningtracker.domain.use_case.DeleteRunUseCase
+import me.yeojoy.runningtracker.domain.use_case.GetRunsUseCase
+import me.yeojoy.runningtracker.domain.use_case.SaveRunUseCase
+import me.yeojoy.runningtracker.presentation.service.TrackingManager
+
+
+class MainViewModel(
+    private val saveRunUseCase: SaveRunUseCase,
+    private val deleteRunUseCase: DeleteRunUseCase,
+    private val getRunsUseCase: GetRunsUseCase,
+    private val trackingManager: TrackingManager
+) : ViewModel() {
+
+    private val _state = MutableStateFlow(MainState())
+    val state: StateFlow<MainState> = _state.asStateFlow()
+
+    // 1회성 flow
+    private val _event = MutableSharedFlow<MainEvent>()
+    val event: SharedFlow<MainEvent> = _event.asSharedFlow()
+
+    init {
+        observeRunsSortType()
+        observeTrackingState()
+    }
+
+    fun onAction(action: MainAction) {
+        when (action) {
+            is MainAction.ChangeSortType -> changeSortType(action.sortType)
+            MainAction.ClickRun -> clickRun()
+            is MainAction.DeleteRun -> deleteRun(action.run)
+            MainAction.FinishRun -> finishRun()
+            is MainAction.SelectRun -> selectRun(action.run)
+            MainAction.ToggleGpsStatus -> {}
+        }
+    }
+
+    private fun clickRun() {
+        val isTracking = state.value.trackingState.isTracking
+        viewModelScope.launch {
+            if (!isTracking) {
+                // Start Tracking
+                _state.update {
+                    it.copy(selectedRun = null)
+                }
+                _event.emit(MainEvent.StartTracking)
+            } else {
+                // Stop Tracking
+                _event.emit(MainEvent.StopTracking)
+            }
+        }
+    }
+
+    private fun finishRun() {
+        val trackingState = state.value.trackingState
+        val run = Run(
+            distanceInMeters = trackingState.distanceInMeters,
+            timeInMillis = trackingState.timeInMillis,
+            timestamp = System.currentTimeMillis(),
+            avgSpeedInKMH = trackingState.avgSpeedInKMH,
+            pathPoints = trackingState.pathPoints
+        )
+        viewModelScope.launch {
+            _event.emit(MainEvent.StopTracking)
+            saveRunUseCase.execute(run)
+            _event.emit(MainEvent.RunSaved)
+        }
+    }
+
+    private fun deleteRun(run: Run) {
+        viewModelScope.launch {
+            deleteRunUseCase.execute(run)
+            if (state.value.selectedRun?.id == run.id) {
+                _state.update { it.copy(selectedRun = null) }
+            }
+        }
+    }
+
+    private fun selectRun(run: Run) {
+        _state.update {
+            it.copy(
+                selectedRun = run,
+                displayPathPoints = if (!it.trackingState.isTracking) {
+                    run.pathPoints
+                } else {
+                    it.displayPathPoints
+                }
+            )
+        }
+    }
+
+    private fun changeSortType(sortType: SortType) {
+        if (state.value.sortType != sortType) {
+            _state.update {
+                it.copy(sortType = sortType)
+            }
+
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun observeRunsSortType() {
+        _state.map { it.sortType }
+            .distinctUntilChanged()
+            .flatMapLatest { sortType ->
+                getRunsUseCase.execute(sortType)
+            }
+            .onEach { runs ->
+                _state.update { it.copy(runs = runs) }
+            }
+            .launchIn(viewModelScope)
+    }
+
+    private fun observeTrackingState() {
+        trackingManager.state.onEach { trackingState ->
+            _state.update {
+                it.copy(
+                    trackingState = trackingState,
+                    displayPathPoints = if (trackingState.isTracking) {
+                        trackingState.pathPoints
+                    } else {
+                        it.displayPathPoints
+                    }
+                )
+            }
+        }.launchIn(viewModelScope)
+    }
+}

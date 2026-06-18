@@ -1,0 +1,31 @@
+package me.yeojoy.runningtracker.core.di
+
+import me.yeojoy.runningtracker.data.MockRunRepositoryImpl
+import me.yeojoy.runningtracker.domain.repository.RunRepository
+import me.yeojoy.runningtracker.domain.use_case.DeleteRunUseCase
+import me.yeojoy.runningtracker.domain.use_case.GetRunsUseCase
+import me.yeojoy.runningtracker.domain.use_case.SaveRunUseCase
+import me.yeojoy.runningtracker.presentation.MainViewModel
+import me.yeojoy.runningtracker.presentation.service.TrackingManager
+import org.koin.core.module.dsl.viewModel
+import org.koin.dsl.module
+
+val appModule = module {
+    // singleton object
+    single<RunRepository> { MockRunRepositoryImpl() }
+
+    single { DeleteRunUseCase(get()) }
+    single { SaveRunUseCase(get()) }
+    single { GetRunsUseCase(get()) }
+
+    single { TrackingManager() }
+
+    viewModel {
+        MainViewModel(
+            saveRunUseCase = get(),
+            deleteRunUseCase = get(),
+            getRunsUseCase = get(),
+            trackingManager = get()
+        )
+    }
+}

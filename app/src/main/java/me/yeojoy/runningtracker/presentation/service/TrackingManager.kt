@@ -7,7 +7,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import me.yeojoy.runningtracker.core.util.TrackingCalculator
 import me.yeojoy.runningtracker.domain.location.LocationClient
+import me.yeojoy.runningtracker.domain.model.LocationPoint
 
 class TrackingManager(
     private val locationClient: LocationClient,
@@ -21,6 +23,9 @@ class TrackingManager(
 
     private var timerJob: Job? = null
     private var locationJob: Job? = null
+
+    private var lastLocation: LocationPoint? = null
+    private var distanceInMeters = 0.0
 
     fun startTracking(scope: CoroutineScope) {
         _state.update {
@@ -39,6 +44,8 @@ class TrackingManager(
         locationJob?.cancel()
         locationJob = null
         runningTimer.stopTimer()
+        lastLocation = null
+        distanceInMeters = 0.0
     }
 
     private fun startTimer(scope: CoroutineScope) {
@@ -62,8 +69,24 @@ class TrackingManager(
         locationJob = locationClient.getLocationUpdates(1000L).onEach { point ->
             _state.update { currentState ->
                 if (!currentState.isTracking) return@update currentState
+
+                distanceInMeters += lastLocation?.let { last ->
+                    TrackingCalculator.calculateDistanceInMeters(
+                        last.latitude, last.longitude,
+                        point.latitude, point.longitude
+                    )
+                } ?: 0.0
+
+                val averageSpeed = TrackingCalculator.calculateAverageSpeed(
+                    distanceInMeters,
+                    currentState.timeInMillis
+                )
+                lastLocation = point
+
                 currentState.copy(
-                    pathPoints = (currentState.pathPoints + point).toList()
+                    pathPoints = (currentState.pathPoints + point).toList(),
+                    distanceInMeters = distanceInMeters,
+                    avgSpeedInKMH = averageSpeed
                 )
             }
         }.launchIn(scope)

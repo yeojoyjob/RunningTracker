@@ -2,7 +2,7 @@ package me.yeojoy.runningtracker.core
 
 import android.app.Application
 import me.yeojoy.runningtracker.core.di.appModule
-import me.yeojoy.runningtracker.core.di.locationModule
+import me.yeojoy.runningtracker.core.di.flavorModule
 import me.yeojoy.runningtracker.core.di.mapModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -18,8 +18,8 @@ class RunningTrackerApplication: Application() {
             androidContext(this@RunningTrackerApplication)
             modules(
                 appModule,
-                mapModule,
-                locationModule
+                flavorModule,
+                mapModule
             )
         }
     }

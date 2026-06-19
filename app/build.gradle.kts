@@ -11,6 +11,7 @@ val localProperties = Properties().apply {
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -44,6 +45,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     flavorDimensions += "environment"
@@ -51,16 +53,19 @@ android {
 
     productFlavors {
         create("develop") {
+            // Use mock data
             dimension = "environment"
             applicationIdSuffix = ".develop"
             versionNameSuffix = "-develop"
         }
         create("staging") {
+            // Use DB
             dimension = "environment"
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-staging"
         }
         create("production") {
+            // Use DB
             dimension = "environment"
         }
         create("google") {
@@ -101,5 +106,11 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
 
+    // Material icons
     implementation(libs.androidx.compose.material.icons.extended)
+
+    // room db
+    implementation(libs.androidx.room)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
 }

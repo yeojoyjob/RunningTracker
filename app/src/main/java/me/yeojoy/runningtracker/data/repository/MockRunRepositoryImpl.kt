@@ -1,4 +1,4 @@
-package me.yeojoy.runningtracker.data
+package me.yeojoy.runningtracker.data.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +39,7 @@ class MockRunRepositoryImpl : RunRepository {
                 avgSpeedInKMH = 9.0f
             ),
 
-        )
+            )
     )
 
     override suspend fun insertRun(run: Run) {
